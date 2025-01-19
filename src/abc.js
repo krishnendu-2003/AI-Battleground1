@@ -9,8 +9,8 @@ const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
-});
-
+}); 
+ 
 const promptUser = () => {
   rl.question('You: ', async (userInput) => {
     if (userInput.toLowerCase() === 'exit') {

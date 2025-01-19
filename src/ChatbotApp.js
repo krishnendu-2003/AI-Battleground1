@@ -1,4 +1,3 @@
-// src/ChatbotApp.js
 import React, { useState } from 'react';
 import './ChatbotApp.css';
 
@@ -6,9 +5,9 @@ const ChatbotApp = () => {
   const [apiKey1, setApiKey1] = useState('');
   const [apiKey2, setApiKey2] = useState('');
   const [topic, setTopic] = useState('');
-  const [numConversations, setNumConversations] = useState(1);
   const [ready, setReady] = useState(false);
   const [conversation, setConversation] = useState([]);
+  const [error, setError] = useState('');
 
   const handleSubmit = () => {
     if (apiKey1 && apiKey2) {
@@ -20,24 +19,58 @@ const ChatbotApp = () => {
   };
 
   const handleGo = async () => {
-    if (ready && topic && numConversations > 0) {
-      const convo = await simulateConversation(apiKey1, apiKey2, topic, numConversations);
-      setConversation(convo);
+    if (ready && topic) {
+      try {
+        const convo = await simulateConversation(apiKey1, apiKey2, topic);
+        setConversation(convo);
+      } catch (err) {
+        setError(err.message);
+      }
     } else {
-      alert('Please enter a topic, ensure both API keys are ready, and specify the number of conversations.');
+      alert('Please enter a topic and ensure both API keys are ready.');
     }
   };
 
-  const simulateConversation = async (key1, key2, topic, numConversations) => {
-    // Mock function to simulate conversation
+  const simulateConversation = async (key1, key2, topic) => {
     const convo = [];
-    for (let i = 0; i < numConversations; i++) {
-      convo.push({ bot: 'Bot 1', message: `Bot 1: Here's a riddle about ${topic}: What has keys but can't even open a single door?` });
-      convo.push({ bot: 'Bot 2', message: `Bot 2: The answer is a piano.` });
-      convo.push({ bot: 'Bot 2', message: `Bot 2: Now, here's a riddle about ${topic}: What has to be broken before you can use it?` });
-      convo.push({ bot: 'Bot 1', message: `Bot 1: The answer is an egg.` });
+    let context = `Discuss the topic of ${topic}.`;
+
+    for (let i = 0; i < 5; i++) {
+      const response1 = await fetchResponse(key1, context);
+      convo.push({ bot: 'Bot 1', message: response1 });
+      context = response1;
+
+      const response2 = await fetchResponse(key2, context);
+      convo.push({ bot: 'Bot 2', message: response2 });
+      context = response2;
     }
+
     return convo;
+  };
+
+  const fetchResponse = async (apiKey, prompt) => {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.candidates[0].content.parts[0].text;
+    } catch (error) {
+      throw new Error(`Failed to fetch response: ${error.message}`);
+    }
   };
 
   return (
@@ -66,16 +99,10 @@ const ChatbotApp = () => {
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
           />
-          <input
-            type="number"
-            placeholder="Number of conversations"
-            value={numConversations}
-            onChange={(e) => setNumConversations(parseInt(e.target.value))}
-            min="1"
-          />
           <button onClick={handleGo}>Go</button>
         </div>
       )}
+      {error && <div className="error">{error}</div>}
       {conversation.length > 0 && (
         <div className="conversation">
           <h2>Conversation:</h2>
