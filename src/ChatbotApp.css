@@ -38,3 +38,36 @@
     background-color: #e0e0e0;
   }
   
+
+  .chatbot-app {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+  
+  .api-keys, .topic-input {
+    margin-bottom: 20px;
+  }
+  
+  .conversation {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .message {
+    margin-bottom: 10px;
+  }
+  
+  .message.Bot1 {
+    background-color: #f0f8ff;
+  }
+  
+  .message.Bot2 {
+    background-color: #e6ffe6;
+  }
+  
+  .error {
+    color: red;
+    margin-top: 20px;
+  }
+  
